@@ -1,11 +1,10 @@
 use std::{fs, io::Write, path::Path};
-
 use image::{DynamicImage, ImageBuffer, Pixel, Rgba, RgbaImage};
-use crate::error::Error;
 
 // ==================================================
 
 pub mod error;
+pub use crate::error::Error;
 
 // ==================================================
 

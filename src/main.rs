@@ -1,4 +1,4 @@
-use std::{env, path::{Path, PathBuf}, process};
+use std::{env, path::PathBuf, process};
 
 use tuassiff;
 
@@ -8,7 +8,6 @@ use tuassiff;
 const GREEN: &str = "\x1b[32m";
 const RED: &str = "\x1b[31m";
 const YELLOW: &str = "\x1b[33m";
-const BLUE: &str = "\x1b[34m";
 const BRIGHT_BLUE: &str = "\x1b[94m";
 const BOLD: &str = "\x1b[1m";
 const DIM: &str = "\x1b[2m";
