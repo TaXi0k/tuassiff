@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
+use image::{DynamicImage, GenericImageView, ImageBuffer, Pixel, Rgba, RgbaImage};
 use crate::error::Error;
 
 // ==================================================
@@ -48,7 +48,23 @@ impl Data {
         }
 
     // Encode image::DynamicImage
-    pub fn from_img(img: DynamicImage) -> Result<Self, Error> {
-        todo!()
+    pub fn from_img(img: DynamicImage) -> Self {
+        let width = img.width();
+        let height = img.height();
+        let pixels: Vec<Rgba<u8>> = img.to_rgba32f().pixels().map(
+            |p|
+            {
+                let channels = p.channels();
+                Rgba([
+                    (channels[0].clamp(0.0, 1.0) * 255.0) as u8,
+                    (channels[1].clamp(0.0, 1.0) * 255.0) as u8,
+                    (channels[2].clamp(0.0, 1.0) * 255.0) as u8,
+                    (channels[3].clamp(0.0, 1.0) * 255.0) as u8,
+                ])
+            }
+        ).collect();
+
+        Self { width, height, pixels }
     }
 }
+
