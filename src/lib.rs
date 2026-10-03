@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{fs, path::Path};
 
 use image::{DynamicImage, GenericImageView, ImageBuffer, Pixel, Rgba, RgbaImage};
 use crate::error::Error;
@@ -6,6 +6,13 @@ use crate::error::Error;
 // ==================================================
 
 pub mod error;
+
+// ==================================================
+
+pub const MAGIC_BYTES: [u8; 12] = [
+    0xdf, 0xa4, 0x43, 0xfb, 0xc0, 0x7b, 0xd6, 0xf0, 0xf5, 0x71, 0x92, 0xa9
+];
+pub const HEADER_LEN: usize = 20;
 
 // ==================================================
 
@@ -27,6 +34,31 @@ impl Data {
 
     // Open tuassiff:Data from a file
     pub fn open(source: &Path) -> Result<Self, Error> {
+        match fs::read(source) {
+            Ok(bytes) => {
+                if bytes.len() < HEADER_LEN { return Err(Error::UnexpectedEof); }
+
+                let magic_bytes = &bytes[0..12];
+                let width_bytes = &bytes[12..16];
+                let height_bytes = &bytes[16..20];
+                let pixels_bytes = &bytes[20..];
+
+                if magic_bytes != MAGIC_BYTES { return Err(Error::InvalidMagic); }
+
+                let width = u32::from_le_bytes(
+                    width_bytes
+                        .try_into()
+                        .map_err(|_| Error::InvalidHeader )?
+                );
+                let height = u32::from_le_bytes(
+                    height_bytes
+                        .try_into()
+                        .map_err(|_| Error::InvalidHeader )?
+                );
+            },
+            Err(e) => return Err( Error::Read(e) ),
+        }
+
         todo!()
     }
 
