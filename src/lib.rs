@@ -1,6 +1,6 @@
-use std::{fs, path::Path};
+use std::{fs, io::Write, path::Path};
 
-use image::{DynamicImage, GenericImageView, ImageBuffer, Pixel, Rgba, RgbaImage};
+use image::{DynamicImage, ImageBuffer, Pixel, Rgba, RgbaImage};
 use crate::error::Error;
 
 // ==================================================
@@ -36,15 +36,19 @@ impl Data {
     pub fn open(source: &Path) -> Result<Self, Error> {
         match fs::read(source) {
             Ok(bytes) => {
+                // Throw an error if file is shorter than header length
                 if bytes.len() < HEADER_LEN { return Err(Error::UnexpectedEof); }
 
+                // Split file into sections
                 let magic_bytes = &bytes[0..12];
                 let width_bytes = &bytes[12..16];
                 let height_bytes = &bytes[16..20];
                 let pixels_bytes = &bytes[20..];
 
+                // Throw an error if magic bytes don't match
                 if magic_bytes != MAGIC_BYTES { return Err(Error::InvalidMagic); }
 
+                // Parsing width and height from raw bytes
                 let width = u32::from_le_bytes(
                     width_bytes
                         .try_into()
@@ -55,16 +59,47 @@ impl Data {
                         .try_into()
                         .map_err(|_| Error::InvalidHeader )?
                 );
+
+                // Checking length of data part of file
+                let expected_pixels = (width as usize) * (height as usize);
+                if pixels_bytes.len() / 4 < expected_pixels { return Err(Error::UnexpectedEof); }
+                else if pixels_bytes.len() / 4 > expected_pixels { return Err(Error::UnexpectedTrailingData); }
+
+                let mut pixels: Vec<Rgba<u8>> = Vec::new();
+                for chunk in pixels_bytes.chunks_exact(4) {
+                    let channel_bytes = [chunk[0], chunk[1], chunk[2], chunk[3]];
+                    pixels.push(Rgba(channel_bytes));
+                }
+
+                Ok(Self{
+                    width,
+                    height,
+                    pixels,
+                })
+
             },
-            Err(e) => return Err( Error::Read(e) ),
+            Err(e) => Err( Error::Read(e) ),
         }
 
-        todo!()
     }
 
     // Write tuassiff::Data to a file
     pub fn save(&self, target: &Path) -> Result<(), Error> {
-        todo!()
+        
+        match fs::File::create(target) {
+            Ok(mut file) => {
+                file.write_all(&MAGIC_BYTES).map_err(Error::Write)?;
+                file.write_all(&self.width.to_le_bytes()).map_err(Error::Write)?;
+                file.write_all(&self.height.to_le_bytes()).map_err(Error::Write)?;
+
+                for pixel in &self.pixels {
+                    file.write_all(pixel.channels()).map_err(Error::Write)?;
+                }
+                
+                Ok(())
+            },
+            Err(e) => Err(Error::Create(e))
+        }
     }
 
     // Decode tuassiff::Data to image::DynamicImage
