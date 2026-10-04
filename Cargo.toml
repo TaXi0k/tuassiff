@@ -2,7 +2,7 @@
 name = "tuassiff"
 authors = ["TaXi0k"]
 repository = "https://github.com/TaXi0k/tuassiff"
-license = "CC BY-NC 4.0"
+license = "CC-BY-NC-4.0"
 description = "Tuassiff is a bespoke, unoptimized, custom binary image serialization file format."
 readme = "README.md"
 version = "0.1.0"
