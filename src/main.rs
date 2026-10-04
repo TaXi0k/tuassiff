@@ -28,7 +28,7 @@ fn main() {
 
     match args[1].to_lowercase().as_str() {
         "encode" => {
-            let img = image::open(source).unwrap_or_else(
+            let img = image::open(&source).unwrap_or_else(
                 |e| {
                     eprintln!("{RED}{BOLD}ERROR:{RESET}{RED} Failed to open source image with error:\n{RESET}{e}");
                     process::exit(1);
@@ -40,7 +40,7 @@ fn main() {
                     eprintln!("{RED}{BOLD}ERROR:{RESET}{RED} Failed to save converted image with error:\n{RESET}{e}");
                     process::exit(1);
                 }
-            )
+            );
         },
         "decode" => {
             let data: tuassiff::Data = tuassiff::Data::open(&source).unwrap_or_else(
@@ -55,7 +55,7 @@ fn main() {
                     eprintln!("{RED}{BOLD}ERROR:{RESET}{RED} Failed to save converted image with error:\n{RESET}{e}");
                     process::exit(1);
                 }
-            )
+            );
         },
         _ => {
             print_usage();
